@@ -9,5 +9,4 @@ import java.util.List;
 @Repository
 public interface FillBlankQuestionRepository extends JpaRepository<FillBlankQuestion, Long> {
     List<FillBlankQuestion> findByEvaluationId(Long evaluationId);
-
 }

@@ -8,6 +8,7 @@ import com.evaluation.evaluation.model.Question;
 import com.evaluation.evaluation.model.StudentAnswer;
 import com.evaluation.evaluation.repository.EvaluationAttemptRepository;
 import com.evaluation.evaluation.repository.EvaluationRepository;
+import com.evaluation.evaluation.repository.FillBlankQuestionRepository;
 import com.evaluation.evaluation.repository.OptionRepository;
 import com.evaluation.evaluation.repository.QuestionRepository;
 import com.evaluation.evaluation.repository.StudentAnswerRepository;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -27,6 +29,7 @@ public class EvaluationAttemptServiceImpl implements EvaluationAttemptService {
     private final QuestionRepository questionRepository;
     private final StudentAnswerRepository studentAnswerRepository;
     private final OptionRepository optionRepository;
+    private final FillBlankQuestionRepository fillBlankQuestionRepository;
 
     @Override
     public EvaluationAttempt startAttempt(Long evaluationId, Long userId) {
@@ -168,23 +171,27 @@ public class EvaluationAttemptServiceImpl implements EvaluationAttemptService {
                     }
                     break;
                 case FILL_BLANK:
-                    // Check textAnswer against blanks
+                    // Load FillBlankQuestion with blanks (base Question from answer may not have blanks loaded)
                     if (answer.getTextAnswer() != null) {
-                        // Parse textAnswer (comma separated)
                         String[] userWords = answer.getTextAnswer().split(",");
-                        // Compare with Question.blanks (need to fetch/access them)
-                        if (question instanceof com.evaluation.evaluation.model.FillBlankQuestion) {
-                            com.evaluation.evaluation.model.FillBlankQuestion fbq = (com.evaluation.evaluation.model.FillBlankQuestion) question;
-                            if (fbq.getBlanks() != null && fbq.getBlanks().size() == userWords.length) {
-                                boolean allMatch = true;
-                                for (int i = 0; i < fbq.getBlanks().size(); i++) {
-                                    if (!fbq.getBlanks().get(i).getCorrectWord()
-                                            .equalsIgnoreCase(userWords[i].trim())) {
-                                        allMatch = false;
+                        var fbqOpt = fillBlankQuestionRepository.findById(question.getId());
+                        if (fbqOpt.isPresent()) {
+                            com.evaluation.evaluation.model.FillBlankQuestion fbq = fbqOpt.get();
+                            List<com.evaluation.evaluation.model.Blank> blanks = fbq.getBlanks();
+                            if (blanks != null && !blanks.isEmpty() && blanks.size() == userWords.length) {
+                                // Sort blanks by positionIndex so order matches the student's answer
+                                List<com.evaluation.evaluation.model.Blank> sortedBlanks = blanks.stream()
+                                        .sorted(Comparator.comparing(com.evaluation.evaluation.model.Blank::getPositionIndex))
+                                        .toList();
+                                isCorrect = true;
+                                for (int i = 0; i < sortedBlanks.size(); i++) {
+                                    String correct = sortedBlanks.get(i).getCorrectWord();
+                                    String user = userWords[i].trim();
+                                    if (correct == null || !correct.equalsIgnoreCase(user)) {
+                                        isCorrect = false;
                                         break;
                                     }
                                 }
-                                isCorrect = allMatch;
                             }
                         }
                     }
