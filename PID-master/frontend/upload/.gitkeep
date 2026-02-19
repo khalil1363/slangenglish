@@ -1,0 +1,4 @@
+# Evaluation image uploads
+# Photos are sent to the backend and saved in the server's "uploads" folder
+# (e.g. backend/microservices/evaluation/uploads when the app runs).
+# This frontend folder is for reference; the database stores the image URL from the API.
