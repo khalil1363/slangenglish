@@ -108,6 +108,99 @@
   line-height: 1.5;
 }
 
+/* Fill in the blanks – word bank + drag & drop */
+.fill-blank-container {
+  margin-bottom: 24px;
+}
+.fill-blank-instruction {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 12px 0;
+}
+.fill-blank-word-bank {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(102, 126, 234, 0.08);
+  border: 1px dashed #667eea;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+.word-bank-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #667eea;
+  margin-right: 4px;
+}
+.fill-blank-word {
+  display: inline-block;
+  padding: 8px 14px;
+  background: white;
+  border: 1px solid #667eea;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  cursor: grab;
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.fill-blank-word:active {
+  cursor: grabbing;
+}
+.fill-blank-paragraph {
+  font-size: 16px;
+  line-height: 2;
+  color: #333;
+}
+.fill-blank-paragraph .segment-text {
+  white-space: pre-wrap;
+}
+.fill-blank-slot {
+  display: inline-block;
+  min-width: 120px;
+  min-height: 36px;
+  vertical-align: middle;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  margin: 0 4px;
+  padding: 4px 8px;
+  background: #fafafa;
+  transition: border-color 0.2s, background 0.2s;
+}
+.fill-blank-slot:hover {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
+}
+.fill-blank-slot.filled {
+  border-style: solid;
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+}
+.slot-placeholder {
+  color: #999;
+  font-size: 14px;
+}
+.slot-word {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+.slot-remove {
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  color: #666;
+}
+.slot-remove mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
 .full-width {
   width: 100%;
 }

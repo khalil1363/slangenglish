@@ -78,24 +78,22 @@
   <!-- Add Fill blank -->
   <div class="add-form card" *ngIf="addingType === 'FILL_BLANK'">
     <h3>Add Fill in the blanks</h3>
+    <p class="form-hint">Students will see the paragraph with empty blanks and a word bank at the top. They drag and drop each word into the correct blank.</p>
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Question / paragraph text (use ____ for blanks)</mat-label>
-      <textarea matInput rows="3" [(ngModel)]="newFillBlank.questionText"></textarea>
-    </mat-form-field>
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Paragraph (same, for display)</mat-label>
-      <textarea matInput rows="2" [(ngModel)]="newFillBlank.paragraphText"></textarea>
+      <mat-label>Paragraph (use ____ for each blank)</mat-label>
+      <textarea matInput rows="4" [(ngModel)]="newFillBlank.paragraphText" placeholder="e.g. The capital of France is ____ and the capital of Italy is ____."></textarea>
+      <mat-hint>Use exactly one ____ for each blank. Add the matching words below in the same order.</mat-hint>
     </mat-form-field>
     <mat-form-field appearance="outline" class="short">
       <mat-label>Points</mat-label>
       <input matInput type="number" [(ngModel)]="newFillBlank.points" min="0">
     </mat-form-field>
-    <p class="label">Correct words (order matters)</p>
+    <p class="label">Words for the blanks (in order – students will see these to drag into the blanks)</p>
     <div class="option-row" *ngFor="let b of newFillBlank.blanks; let i = index">
-      <input class="opt-input" [(ngModel)]="b.correctWord" [placeholder]="'Word ' + (i+1)">
+      <input class="opt-input" [(ngModel)]="b.correctWord" [placeholder]="'Word for blank ' + (i+1)">
       <button mat-icon-button (click)="removeBlank(i)" *ngIf="newFillBlank.blanks.length > 1"><mat-icon>close</mat-icon></button>
     </div>
-    <button mat-button (click)="addBlank()"><mat-icon>add</mat-icon> Add blank</button>
+    <button mat-button (click)="addBlank()"><mat-icon>add</mat-icon> Add another word (adds one more blank)</button>
     <div class="form-actions">
       <button mat-stroked-button (click)="addingType = null">Cancel</button>
       <button mat-raised-button class="primary-btn" (click)="submitFillBlank()">Add Fill blank</button>

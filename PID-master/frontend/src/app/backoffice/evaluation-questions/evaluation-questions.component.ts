@@ -121,13 +121,15 @@ export class EvaluationQuestionsComponent implements OnInit {
 
   submitFillBlank(): void {
     const order = Math.max(0, ...this.questions.map(q => q.questionOrder || 0)) + 1;
+    const filtered = this.newFillBlank.blanks.filter(b => b.correctWord.trim());
+    const blanksWithIndex = filtered.map((b, i) => ({ ...b, positionIndex: i }));
     this.api.addFillBlankQuestion({
       evaluationId: this.evaluationId,
-      questionText: this.newFillBlank.questionText,
+      questionText: this.newFillBlank.paragraphText || this.newFillBlank.questionText,
       paragraphText: this.newFillBlank.paragraphText || this.newFillBlank.questionText,
       points: this.newFillBlank.points,
       questionOrder: this.newFillBlank.questionOrder || order,
-      blanks: this.newFillBlank.blanks.filter(b => b.correctWord.trim())
+      blanks: blanksWithIndex
     }).subscribe({
       next: () => {
         this.snackBar.open('Fill in the blanks added', 'Close', { duration: 2000 });

@@ -30,13 +30,31 @@
       </button>
     </div>
 
-    <!-- FILL_BLANK -->
-    <div class="text-answer" *ngIf="currentQuestion.questionType === 'FILL_BLANK'">
-      <p class="paragraph" *ngIf="currentQuestion.paragraphText">{{ currentQuestion.paragraphText }}</p>
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Your answer (comma-separated for multiple blanks)</mat-label>
-        <input matInput [ngModel]="getAnswerText()" (ngModelChange)="setAnswerText($event)" placeholder="e.g. Paris,Rome">
-      </mat-form-field>
+    <!-- FILL_BLANK: word bank at top, paragraph with blanks for drag & drop -->
+    <div class="fill-blank-container" *ngIf="currentQuestion.questionType === 'FILL_BLANK'">
+      <p class="fill-blank-instruction">Drag each word from the box below into the correct blank in the paragraph.</p>
+      <div class="fill-blank-word-bank">
+        <span class="word-bank-label">Words:</span>
+        <span class="fill-blank-word" *ngFor="let word of getFillBlankBank()" draggable="true"
+          (dragstart)="onFillBlankDragStart(word, $event)">{{ word }}</span>
+      </div>
+      <div class="fill-blank-paragraph">
+        <ng-container *ngFor="let segment of getFillBlankSegments(); let i = index">
+          <span class="segment-text">{{ segment }}</span>
+          <span class="fill-blank-slot" *ngIf="i < getFillBlankSegments().length - 1"
+            (dragover)="onFillBlankDragOver($event)"
+            (drop)="onFillBlankDrop(i, $event)"
+            [class.filled]="getFillBlankSlots()[i]">
+            <span class="slot-word" *ngIf="getFillBlankSlots()[i]">
+              {{ getFillBlankSlots()[i] }}
+              <button type="button" class="slot-remove" mat-icon-button (click)="removeFillBlankFromSlot(i)">
+                <mat-icon>close</mat-icon>
+              </button>
+            </span>
+            <span class="slot-placeholder" *ngIf="!getFillBlankSlots()[i]">_____</span>
+          </span>
+        </ng-container>
+      </div>
     </div>
 
     <!-- READING / WRITING -->
