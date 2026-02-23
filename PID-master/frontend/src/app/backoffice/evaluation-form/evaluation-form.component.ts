@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { EvaluationApiService, Evaluation } from '../../core/services/evaluation-api.service';
+import { Evaluation } from '../../core/models';
+import { EvaluationApiService } from '../../core/services/evaluation-api.service';
+import { getDisplayUploadUrl } from '../../core/utils/upload-url.util';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
@@ -65,7 +67,7 @@ export class EvaluationFormComponent implements OnInit {
           numberOfAttempts: e.numberOfAttempts ?? 2,
           totalScore: e.totalScore ?? 100
         });
-        if (e.imageUrl) this.imagePreviewUrl = e.imageUrl;
+        if (e.imageUrl) this.imagePreviewUrl = getDisplayUploadUrl(e.imageUrl);
         this.loading = false;
       },
       error: () => {
@@ -114,7 +116,7 @@ export class EvaluationFormComponent implements OnInit {
     this.api.uploadEvaluationImage(file).subscribe({
       next: (res) => {
         this.form.patchValue({ imageUrl: res.url });
-        this.imagePreviewUrl = res.url;
+        this.imagePreviewUrl = getDisplayUploadUrl(res.url);
         this.uploadingImage = false;
         this.snackBar.open('Photo uploaded', 'Close', { duration: 2000 });
       },

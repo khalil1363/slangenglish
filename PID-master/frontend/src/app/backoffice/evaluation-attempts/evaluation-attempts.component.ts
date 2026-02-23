@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { EvaluationApiService, Evaluation, EvaluationAttempt, StudentAnswer, User } from '../../core/services/evaluation-api.service';
+import { Evaluation, EvaluationAttempt, StudentAnswer, User } from '../../core/models';
+import { EvaluationApiService } from '../../core/services/evaluation-api.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({

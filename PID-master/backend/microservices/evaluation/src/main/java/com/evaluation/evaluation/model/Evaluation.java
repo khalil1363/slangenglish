@@ -7,9 +7,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -47,8 +50,10 @@ public class Evaluation {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "evaluation", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("questionOrder ASC")
     private List<Question> questions = new ArrayList<>();
 
     @OneToMany(mappedBy = "evaluation")
+    @JsonIgnore
     private List<EvaluationAttempt> attempts = new ArrayList<>();
 }

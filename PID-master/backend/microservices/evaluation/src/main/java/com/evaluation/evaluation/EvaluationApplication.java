@@ -2,35 +2,16 @@ package com.evaluation.evaluation;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
+@EnableDiscoveryClient
 public class EvaluationApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(EvaluationApplication.class, args);
 	}
 
-	@Bean
-	public CorsFilter corsFilter() {
-		CorsConfiguration config = new CorsConfiguration();
-		config.setAllowCredentials(false);
-		config.addAllowedOrigin("http://localhost:4200");
-		config.addAllowedOrigin("http://localhost:61968");
-		config.addAllowedHeader("*");
-		config.addAllowedMethod("GET");
-		config.addAllowedMethod("POST");
-		config.addAllowedMethod("PUT");
-		config.addAllowedMethod("DELETE");
-		config.addAllowedMethod("OPTIONS");
-		config.addAllowedMethod("PATCH");
-		config.setMaxAge(3600L);
-
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", config);
-		return new CorsFilter(source);
-	}
+	// CORS is handled only at the gateway (8080). Do not add CORS here when behind the gateway,
+	// or the response would have duplicate Access-Control-Allow-Origin headers.
 }

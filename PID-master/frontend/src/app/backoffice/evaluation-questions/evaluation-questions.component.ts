@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { EvaluationApiService, Evaluation, Question, Option, Blank } from '../../core/services/evaluation-api.service';
+import { Evaluation, Question, Option, Blank } from '../../core/models';
+import { EvaluationApiService } from '../../core/services/evaluation-api.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
@@ -20,6 +21,9 @@ export class EvaluationQuestionsComponent implements OnInit {
   newFillBlank = { questionText: '', paragraphText: '', points: 10, questionOrder: 1, blanks: [{ correctWord: '', positionIndex: 0 }] };
   newReading = { questionText: '', instructions: '', pdfUrl: '', points: 10, questionOrder: 1 };
   newWriting = { questionText: '', subject: '', maxWords: 500, points: 10, questionOrder: 1 };
+  uploadingPdf = false;
+  readingPdfFileName = '';
+  generatingAi = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -55,6 +59,44 @@ export class EvaluationQuestionsComponent implements OnInit {
 
   setAdding(type: 'MCQ' | 'MSQ' | 'FILL_BLANK' | 'READING' | 'WRITING'): void {
     this.addingType = type;
+    if (type === 'READING') {
+      this.readingPdfFileName = '';
+    }
+  }
+
+  triggerPdfInput(input: HTMLInputElement): void {
+    input.click();
+  }
+
+  onReadingPdfSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      this.snackBar.open('Please select a PDF file', 'Close', { duration: 3000 });
+      input.value = '';
+      return;
+    }
+    this.uploadingPdf = true;
+    this.readingPdfFileName = file.name;
+    this.api.uploadReadingPdf(file).subscribe({
+      next: (res) => {
+        this.newReading.pdfUrl = res.url;
+        this.uploadingPdf = false;
+        this.snackBar.open('PDF uploaded', 'Close', { duration: 2000 });
+      },
+      error: () => {
+        this.uploadingPdf = false;
+        this.readingPdfFileName = '';
+        this.snackBar.open('PDF upload failed', 'Close', { duration: 3000 });
+      }
+    });
+    input.value = '';
+  }
+
+  clearReadingPdf(): void {
+    this.newReading.pdfUrl = '';
+    this.readingPdfFileName = '';
   }
 
   addOptionMCQ(): void {
@@ -141,6 +183,34 @@ export class EvaluationQuestionsComponent implements OnInit {
     });
   }
 
+  generateReadingWithAi(): void {
+    if (!this.newReading.pdfUrl) {
+      this.snackBar.open('Upload a PDF first', 'Close', { duration: 3000 });
+      return;
+    }
+    this.generatingAi = true;
+    this.api.generateReadingQuestionsFromPdf({
+      evaluationId: this.evaluationId,
+      pdfUrl: this.newReading.pdfUrl,
+      instructions: this.newReading.instructions,
+      pointsPerQuestion: this.newReading.points
+    }).subscribe({
+      next: (created) => {
+        this.generatingAi = false;
+        this.snackBar.open(`Generated ${created.length} questions with AI (Ollama)`, 'Close', { duration: 3000 });
+        this.addingType = null;
+        this.newReading = { questionText: '', instructions: '', pdfUrl: '', points: 10, questionOrder: 1 };
+        this.readingPdfFileName = '';
+        this.load();
+      },
+      error: (err) => {
+        this.generatingAi = false;
+        const msg = err?.error?.message || err?.message || 'AI generation failed. Is Ollama running? Run: ollama pull llama3.2';
+        this.snackBar.open(msg, 'Close', { duration: 5000 });
+      }
+    });
+  }
+
   submitReading(): void {
     const order = Math.max(0, ...this.questions.map(q => q.questionOrder || 0)) + 1;
     this.api.addReadingQuestion({
@@ -155,6 +225,7 @@ export class EvaluationQuestionsComponent implements OnInit {
         this.snackBar.open('Reading question added', 'Close', { duration: 2000 });
         this.addingType = null;
         this.newReading = { questionText: '', instructions: '', pdfUrl: '', points: 10, questionOrder: 1 };
+        this.readingPdfFileName = '';
         this.load();
       },
       error: () => this.snackBar.open('Failed to add question', 'Close', { duration: 3000 })

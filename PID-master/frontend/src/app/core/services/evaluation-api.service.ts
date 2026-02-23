@@ -1,77 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import type { Evaluation, Question, Option, Blank, EvaluationAttempt, StudentAnswer, User } from '../models';
 
-const API_URL = 'http://localhost:8020/api';
-
-export interface Evaluation {
-  id?: number;
-  title: string;
-  imageUrl?: string;
-  dateStart: string;
-  dateEnd: string;
-  durationMinutes: number;
-  numberOfAttempts: number;
-  totalScore: number;
-  questions?: Question[];
-  attempts?: EvaluationAttempt[];
-}
-
-export interface Question {
-  id?: number;
-  questionText: string;
-  points: number;
-  questionType: 'MCQ' | 'MSQ' | 'FILL_BLANK' | 'READING' | 'WRITING';
-  questionOrder: number;
-  evaluationId?: number;
-  options?: Option[];
-  blanks?: Blank[];
-  paragraphText?: string;
-  instructions?: string;
-  pdfUrl?: string;
-  subject?: string;
-  maxWords?: number;
-}
-
-export interface Option {
-  id?: number;
-  optionText: string;
-  isCorrect: boolean;
-}
-
-export interface Blank {
-  id?: number;
-  correctWord: string;
-  positionIndex: number;
-}
-
-export interface EvaluationAttempt {
-  id: number;
-  userId: number;
-  startTime: string;
-  endTime?: string;
-  score?: number;
-  status: 'IN_PROGRESS' | 'SUBMITTED' | 'EXPIRED';
-  attemptNumber: number;
-  studentAnswers?: StudentAnswer[];
-  evaluation?: Evaluation;
-}
-
-export interface StudentAnswer {
-  id?: number;
-  textAnswer?: string;
-  scoreAwarded?: number;
-  question?: Question;
-  selectedOptions?: Option[];
-}
-
-export interface User {
-  id: number;
-  name: string;
-  surname: string;
-  email: string;
-  role: string;
-}
+const API_URL = 'http://localhost:8080/api';
 
 @Injectable({ providedIn: 'root' })
 export class EvaluationApiService {
@@ -91,6 +23,13 @@ export class EvaluationApiService {
     const formData = new FormData();
     formData.append('file', file, file.name);
     return this.http.post<{ url: string }>(`${API_URL}/evaluations/upload-image`, formData);
+  }
+
+  /** Upload PDF for Reading question; file is saved in backend uploads folder, returns URL for database. */
+  uploadReadingPdf(file: File): Observable<{ url: string }> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    return this.http.post<{ url: string }>(`${API_URL}/evaluations/upload-pdf`, formData);
   }
 
   createEvaluation(e: Partial<Evaluation>): Observable<Evaluation> {
@@ -151,6 +90,16 @@ export class EvaluationApiService {
 
   addReadingQuestion(question: Partial<Question> & { evaluationId: number; instructions?: string; pdfUrl?: string }): Observable<Question> {
     return this.http.post<Question>(`${API_URL}/reading-questions`, { ...question, questionType: 'READING' });
+  }
+
+  /** Generate 10 Reading questions from PDF using AI (Ollama, free). Requires PDF uploaded and Ollama running locally. */
+  generateReadingQuestionsFromPdf(params: { evaluationId: number; pdfUrl: string; instructions?: string; pointsPerQuestion?: number }): Observable<Question[]> {
+    return this.http.post<Question[]>(`${API_URL}/reading-questions/generate-from-pdf`, {
+      evaluationId: params.evaluationId,
+      pdfUrl: params.pdfUrl,
+      instructions: params.instructions ?? '',
+      pointsPerQuestion: params.pointsPerQuestion ?? 2
+    });
   }
 
   addWritingQuestion(question: Partial<Question> & { evaluationId: number; subject?: string; maxWords?: number }): Observable<Question> {

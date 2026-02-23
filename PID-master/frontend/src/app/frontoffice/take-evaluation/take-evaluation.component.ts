@@ -1,7 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { EvaluationApiService, Evaluation, EvaluationAttempt, Question, Option, Blank } from '../../core/services/evaluation-api.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { Evaluation, EvaluationAttempt, Question, Option, Blank } from '../../core/models';
+import { EvaluationApiService } from '../../core/services/evaluation-api.service';
 import { CurrentUserService } from '../../core/services/current-user.service';
+import { getDisplayUploadUrl } from '../../core/utils/upload-url.util';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 const FILL_BLANK_PLACEHOLDER = '____';
@@ -39,8 +42,21 @@ export class TakeEvaluationComponent implements OnInit {
     private router: Router,
     private api: EvaluationApiService,
     private currentUser: CurrentUserService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private sanitizer: DomSanitizer
   ) {}
+
+  /** Safe URL for embedding PDF in iframe (Reading question). */
+  getSafePdfUrl(url: string | undefined): SafeResourceUrl | null {
+    const displayUrl = getDisplayUploadUrl(url);
+    if (!displayUrl) return null;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(displayUrl);
+  }
+
+  /** Display URL for PDF link (open in new tab). */
+  getPdfDisplayUrl(url: string | undefined): string {
+    return getDisplayUploadUrl(url);
+  }
 
   ngOnInit(): void {
     this.evaluationId = +this.route.snapshot.paramMap.get('id')!;

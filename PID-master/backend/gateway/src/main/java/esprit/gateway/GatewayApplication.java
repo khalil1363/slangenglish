@@ -15,9 +15,14 @@ public class GatewayApplication {
         SpringApplication.run(GatewayApplication.class, args);
     }
     @Bean
-    public RouteLocator gatewayRoutes(RouteLocatorBuilder builder){
-        return builder.routes() .route("evaluation",r->r.path("/evaluation/**")
-                        .uri("http://localhost:8020/") ).build();
-
-         }
+    public RouteLocator gatewayRoutes(RouteLocatorBuilder builder) {
+        return builder.routes()
+                // Route /api/** to the evaluation microservice (discovered via Eureka as "evaluation")
+                .route("evaluation", r -> r.path("/api/**")
+                        .uri("lb://evaluation"))
+                // Serve uploaded files (photo, PDF) so frontend can display them
+                .route("evaluation-uploads", r -> r.path("/uploads/**")
+                        .uri("lb://evaluation"))
+                .build();
+    }
 }
